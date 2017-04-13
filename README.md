@@ -1,0 +1,2 @@
+# commonSearchComponent
+一个基于Bootstrap的通用搜索条件组件
