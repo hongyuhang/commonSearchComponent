@@ -120,6 +120,8 @@ function SearchCondition(containerId, options){
 		$('#reset').click(function() { 
 			// 清空条件展示区
 			$('#selectedConditionShowArea').children().remove();
+			// 展示区隐藏
+			$('#showSelCondRow').hide();
 			// 清空内部数据的value值
 			$.each(self.options.conditions, function(i, obj) {
 				obj.value = "";
