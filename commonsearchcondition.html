@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset="utf-8" />
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	
+	    <title>通用搜索框组件</title>
+	    <meta name="description" content="搜索框组件" />
+	    <meta name="keywords" content="通用,组件">
+	
+	    <meta name="HandheldFriendly" content="True" />
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	    <meta name="generator" content="Ghost 0.7" />
+	    
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.css"/>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.css"/>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap-select.css"/>
+		<!--<link rel="stylesheet" href="../jquerybootstrap/css/bootstrap-table.css">
+		<link rel="stylesheet" type="text/css" href="../jquerybootstrap/css/examsys.css"/>
+		<link rel="stylesheet" type="text/css" href="../jquerybootstrap/css/font-awesome.css">-->
+		
+		<script src="js/jquery-3.2.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/bootstrap.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/bootstrap-select.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/commonsearchcondition.js" type="text/javascript" charset="utf-8"></script>
+		<script src="searchcondition.js" type="text/javascript" charset="utf-8"></script>
+		<!--<script src="../jquerybootstrap/js/common.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../jquerybootstrap/js/bootstrap-table.js"></script>-->
+		<!-- put your locale files after bootstrap-table.js -->
+		<!--<script src="../jquerybootstrap/js/bootstrap-table-zh-CN.js"></script>
+		<script src="scores.js" type="text/javascript" charset="utf-8"></script>-->
+		<style>
+			html,body {background: white;}
+		</style>
+	</head>
+	<body>
+	    <div class="container">
+	    		<!--
+                	作者：hongyuhang@hotmail.com
+                	时间：2017-04-06
+                	描述：查询条件部分
+                -->
+            <div class="row" style="padding-left: 15px;margin-top:30px ;">
+            		<div id="searchCondition">
+            			<!--<div id="commonSearchContainer" class="container">-->
+            				<!--画面上只能显示row1，row2或者row3，他们之间可以切换-->
+            				<!--整合搜索行-->
+            				<!--<div class="row">
+						  <div class="col-lg-12">
+						    <div class="input-group">
+						      <div id="" class="input-group-btn">
+						        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action <span class="caret"></span></button>
+						        <ul class="dropdown-menu" id="conditionLists">
+						          <li><a href="#"><span class="glyphicon glyphicon-star" style="color:black;" aria-hidden="true"></span>Action</a></li>
+						          <li><a href="#"><span class="glyphicon glyphicon-star-empty" style="color:black;" aria-hidden="true"></span>Another action</a></li>
+						          <li><a href="#">Something else here</a></li>
+						          <li><a href="#">Separated link</a></li>
+						        </ul>
+						      </div>
+						      <input type="text" class="form-control" aria-label="...">
+						      <div class="input-group-btn">
+						        <button class="btn btn-default" type="button">Go!</button>
+						        <button class="btn btn-default" type="button">Reset</button>
+						      </div>
+						    </div>
+						  </div>
+            				</div>-->
+            				<!--筛选条件详细展示区域-->
+            				<!--<div class="row">
+            					<div class="col-lg-12">
+								<div class="panel panel-default">
+								  <div class="panel-body" id="selectedConditionShowArea">
+								    <span class="label label-info">Info:aaaaaa<a href="#"><span class="glyphicon glyphicon-star" style="color:black;" aria-hidden="true"></span></a></span>
+								    <span class="label label-info">Info:aaaaaa<a href="#"><span class="glyphicon glyphicon-remove" style="color:black;" aria-hidden="true"></span></a></span>
+								   
+								  </div>
+								</div>
+            					</div>
+            				</div>-->
+            				<!--详细搜索行--> 
+            				<!--<div class="row">
+            				</div>--><!-- /.row3 -->
+            			</div>
+            		</div>
+            		<!--<form class="form-inline">
+	            		<div class="form-group">
+	            			<label for="userId">用户🆔</label>
+	            			<input type="text" class="form-control" id="userId" placeholder="用户ID" />
+	            		</div>
+	            		<div class="form-group">
+	            			<label for="userId">考试类别</label>
+	            			<select class="form-control" id="code" placeholder="选择类别" >
+	            				<option value="1">测试1</option>
+	            				<option value="2">测试2</option>
+	            			</select>
+	            		</div>
+	            		<button type="button" style="margin-left: 10px;" class="btn btn-default">找到你哟!</button>
+	            	</form>-->
+<!--	            		
+					<div class="col-sm-3 col-md-3 col-lg-3">
+						<div class="input-group">
+						  <span class="input-group-addon" id="userId">用户ID</span>
+						  <input type="text" class="form-control" placeholder="用户ID" aria-describedby="userId">
+						</div>
+					</div>
+					<div class="col-sm-3 col-md-3 col-lg-3">
+						<div class="input-group">
+						  <span class="input-group-addon" id="categoryCode">考试类别</span>
+						  <select class="form-control" placeholder="考试类别" aria-describedby="categoryCode">
+						  		<option value="01">交通法规</option>
+						  		<option value="02">java综合</option>
+						  </select>
+						</div>
+					</div>
+					<div class="col-sm-3 col-md-3 col-lg-3">
+					</div>
+					<div class="col-sm-3 col-md-3 col-lg-3">
+					</div>
+				</div>-->
+				
+			</div>
+			<!--
+            	作者：hongyuhang@hotmail.com
+            	时间：2017-03-05
+            	描述：结果展现部分
+            -->
+			<div class="row" style="margin-top: 20px;">
+				<div class="col-sm-12 col-md-12 col-lg-12">
+					<table id="result">
+					</table>
+				</div>
+			</div>
+	    </div><!-- /.container -->
+	</body>
+</html>
