@@ -23,9 +23,11 @@ $( document ).ready(function(){
 				labelText : "大学生成绩",
 				id	 : "sname",
 				name : "sname",
-				value : "def",
+				value : "1",
 				placeHolder : "请输入成绩",
-				type : "text"
+				type : "mulSelect",
+				dataType : "array",
+				arrayData : [{value:"1", text:"A"},{value:"2", text:"B"}]
 			}
 		]
 	});
