@@ -22,9 +22,10 @@
 //				"value" : "",
 //				"dataType" : "array, ajax", //本选项再text之外的情况下有效，ajax的时候ajaxUrl有效, array时arrayData有效
 //				"ajaxUrl" : 
-//				"arrayData" : [],	// {"value":XXX, "text":XXX}
+//				"arrayData" : [],	// {"value":value, "text":text}
 //				"relationElementId" : "", 
-//				"cacheSelectData" : [] // 内部用，不需作为参数使用，即使传递也会被覆盖的
+//				"cacheSelectData" : [], // 内部用，不需作为参数使用，即使传递也会被覆盖的
+//				"dom"				// 内部用，不需作为参数使用，即使传递也会被覆盖的，把dom对象做一个副本，不用每次都重新建立
 //			}
 		},
 		
@@ -92,59 +93,17 @@ function SearchCondition(containerId, options){
 				}
 				
 				// 切换通用搜索组件的显示
-				$('#commonSearchInput').selectpicker('destroy');
-				$('#commonSearchInput').remove();
-				
-				var value = "";
-				if (conditionObj.value) {
-					value = conditionObj.value;
-				}
-				// text类型的情况下
-				if (conditionObj.type == "text") {
-					var searchText = $('<input hIndex="' + i + '" id="commonSearchInput" type="text" class="form-control" aria-label="..." placeholder="' + conditionObj.placeHolder + '" value="' + value + '"></input>');
-					$('#searchBtnGroup').after($(searchText));
-				}
-				// 如果是可选项或者多选项的情况下
-				// 参数类型检查需要加上
-				if (conditionObj.type == "select" || conditionObj.type == "mulSelect") {
-					var multi = "";
-					if (conditionObj.type == "mulSelect") {
-						multi = "multiple";
-					}
-					var optData = [];
-					var mulSelect = $('<select hIndex="' + i + '" id="commonSearchInput" class="selectpicker input-group-btn form-control" ' + multi + ' data-live-search="true" title="' + conditionObj.placeHolder + '"></select>');
-					// 本地数据的情况
-					if (conditionObj.dataType == "array") {
-						if (!conditionObj.cacheSelectData) {
-							conditionObj.cacheSelectData = conditionObj.arrayData;
-						}
-						optData = conditionObj.arrayData;
-					}
-					
-					// ajax请求的情况
-					if (conditionObj.dataType == "ajax") {
-						if (!conditionObj.cacheSelectData) {
-							// TODO:发送ajax请求，并显示遮罩,把返回的数据设置到对应的缓存上
-						}
-						// 使用缓存的情况下
-						if (conditionObj.isCache) {
-							// TODO:发送ajax请求，并显示遮罩,把返回的数据设置到对应的缓存上	
-						} 
-						optData = conditionObj.cacheSelectData;
-					}
-					
-					$.each(optData, function(j, tempOpt) {
-						mulSelect.append($('<option value="' + tempOpt.value + '">' + tempOpt.text + '</option>'));
-					});
-					$('#searchBtnGroup').after(mulSelect);
+				self._clearSearchInputComponent();
+				var component = self._createSearchInputComponent(i, conditionObj);
+
+				$('#searchBtnGroup').after(component);
 //					mulSelect.selectpicker('render');
-					mulSelect.selectpicker('val', value);
+				if (conditionObj.type == "select" || conditionObj.type == "mulSelect") {
+					component.selectpicker('val', conditionObj.value);
 				}
-				
-				// TODO:如果是日期类型的情况下
-				
-				// 给通用搜索组件添加change事件,关联显示到条件展示区
-				self._handleCommonSearchInputChange();
+
+//				// 给通用搜索组件添加change事件,关联显示到条件展示区
+//				self._handleCommonSearchInputChange();
 				$('#commonSearchInput').focus();
 				$('#commonSearchInput').select();
 			});
@@ -175,37 +134,125 @@ function SearchCondition(containerId, options){
 			}
 		});
 		
-		// 搜索框组件：change事件
-		this._handleCommonSearchInputChange();
+//		// 搜索框组件：change事件
+//		this._handleCommonSearchInputChange();
 	}
 	
 	/**
-	 * 搜索框组件：change事件
+	 * 创建一个搜索框组件
 	 */
-	this._handleCommonSearchInputChange = function () {
-		if ($('#commonSearchInput').hasClass('selectpicker')) {
-			$('#commonSearchInput').bind({
-	            change : function() {
-	            		self._relationUpdate();
-	            }
-			});
-		} else {
-			$('#commonSearchInput').bind({
-	//			copy : function(){
-	//              alert('a');
-	//          },
-	            paste : function() {
-	                self._relationUpdate();
-	            },
-	            cut : function() {
-	                self._relationUpdate();
-	            },
-	            keyup : function() {
-	            		self._relationUpdate();
-	            }
-			});
+	this._createSearchInputComponent = function(index, condition) {
+		var component = "";
+		switch (condition.type) {
+			case "text":
+				// 是否有缓存过的dom
+				if (condition.dom) {
+					component = $.extend(true, {}, condition.dom);
+					component.val(condition.value);
+					component.attr('hIndex', index);
+					component.attr('placeholder', condition.placeHolder);
+				} else {
+					component = $('<input hIndex="' + index + '" id="commonSearchInput" type="text" class="form-control" aria-label="..." placeholder="' + condition.placeHolder + '" value="' + condition.value+ '"></input>');
+					component.bind({
+			            paste : function() {
+			                self._relationUpdate();
+			            },
+			            cut : function() {
+			                self._relationUpdate();
+			            },
+			            keyup : function() {
+			            		self._relationUpdate();
+			            }
+					});
+				}
+//				$('#searchBtnGroup').after($(searchText));
+				break;
+			case "select":
+			case "mulSelect":
+				var multi = "";
+				if (condition.type == "mulSelect") {
+					multi = "multiple";
+				}
+				// 是否有缓存过的dom
+				if (condition.dom) {
+					component = $.extend(true, {}, condition.dom);
+					component.attr('hIndex', index);
+					component.attr('title', condition.placeHolder);
+					component.bind({
+			            change : function() {
+			            		self._relationUpdate();
+			            }
+					});
+				} else {
+					var optData = [];
+					var mulSelect = $('<select hIndex="' + index + '" id="commonSearchInput" class="selectpicker input-group-btn form-control" ' + multi + ' data-live-search="true" title="' + condition.placeHolder + '"></select>');
+					// 本地数据的情况
+					if (condition.dataType == "array") {
+						if (!condition.cacheSelectData) {
+							condition.cacheSelectData = condition.arrayData;
+						}
+						optData = condition.arrayData;
+					}
+					
+					// ajax请求的情况
+					if (condition.dataType == "ajax") {
+						if (!condition.cacheSelectData) {
+							// TODO:发送ajax请求，并显示遮罩,把返回的数据设置到对应的缓存上
+						}
+						// 使用缓存的情况下
+						if (!condition.isCache) {
+							// TODO:发送ajax请求，并显示遮罩,把返回的数据设置到对应的缓存上	
+						} 
+						optData = condition.cacheSelectData;
+					}
+					
+					$.each(optData, function(j, tempOpt) {
+						mulSelect.append($('<option value="' + tempOpt.value + '">' + tempOpt.text + '</option>'));
+					});
+					
+					mulSelect.bind({
+			            change : function() {
+			            		self._relationUpdate();
+			            }
+					});
+					
+					if (condition.dataType == "array" 
+							|| (condition.dataType == "ajax" && condition.isCache)) {
+						condition.dom = mulSelect;
+					}
+					component = mulSelect;
+				}
+				
+				break;
+			case "datePicker":
+				break;
 		}
-
+		return component;
+	}
+	
+	/**
+	 * 清除搜索框
+	 */
+	this._clearSearchInputComponent = function() {
+		var index = $('#commonSearchInput').attr('hIndex');
+		if (!index) {
+			return;
+		}
+		
+		var type = self.options.conditions[index].type;
+		switch(type) {
+			case "text":
+				$('#commonSearchInput').remove();
+				break;
+			case "select":
+			case "mulSelect":
+				$('#commonSearchInput').selectpicker('destroy');
+				$('#commonSearchInput').remove();
+				break;
+			case "datePicker":
+				$('#commonSearchInput').remove();
+				break;
+		}
 	}
 	
 	this._relationUpdate = function() {
@@ -220,12 +267,19 @@ function SearchCondition(containerId, options){
 		
 		if (label.length == 0 && value != "") {
 			// 向展示区域添加label
-			if (!$('#commonSearchInput').hasClass('selectpicker')) {
-				label = $('<span style="margin-right:10px;margin-bottom:5px;display:inline-block;cursor:pointer;" hIndex="' + index + '" class="label label-info">' + condition.labelText + ':' + condition.value + '<a href="#"><span class="glyphicon glyphicon-remove" style="color:black;" aria-hidden="true"></span></a></span>');
-			} else {
-				var textValue = self._createLabelValue(condition);
-				label = $('<span style="margin-right:10px;margin-bottom:5px;display:inline-block;cursor:pointer;" hIndex="' + index + '" class="label label-info">' + condition.labelText + ':' + textValue + '<a href="#"><span class="glyphicon glyphicon-remove" style="color:black;" aria-hidden="true"></span></a></span>');
+			switch (condition.type) {
+				case "text" :
+					label = $('<span style="margin-right:10px;margin-bottom:5px;display:inline-block;cursor:pointer;" hIndex="' + index + '" class="label label-info">' + condition.labelText + ':' + condition.value + '<a href="#"><span class="glyphicon glyphicon-remove" style="color:black;" aria-hidden="true"></span></a></span>');
+					break;
+				case "select" :
+				case "mulSelect" :
+					var textValue = self._createLabelValue(condition);
+					label = $('<span style="margin-right:10px;margin-bottom:5px;display:inline-block;cursor:pointer;" hIndex="' + index + '" class="label label-info">' + condition.labelText + ':' + textValue + '<a href="#"><span class="glyphicon glyphicon-remove" style="color:black;" aria-hidden="true"></span></a></span>');
+					break;
+				case "datePicker" :
+					break;
 			}
+
 			// 注册清除按钮的动作
 			label.find('a').click(function(event){
 				self._labelClearAction(this, event);
@@ -266,23 +320,35 @@ function SearchCondition(containerId, options){
 	 */
 	this._createLabelValue = function(condition) {
 		var textValue = "";
-		if (condition.value instanceof Array) {
-			// 多选的情况
-			$.each(condition.value, function(i, value) {
-				$.each(condition.cacheSelectData, function(j, obj) {
-					if (value == obj.value) {
-						textValue = textValue + obj.text + ",";
-					}
-				});
-			});
-			textValue = textValue.substr(0, textValue.length - 1);
-		} else {
-			$.each(condition.cacheSelectData, function(j, obj) {
-				if (condition.value == obj.value) {
-					textValue = obj.text;
+		
+		switch (condition.type) {
+			case "text" :
+				textValue = condition.value;
+				break;
+			case "select" :
+			case "mulSelect" :
+				if (condition.value instanceof Array) {
+					// 多选的情况
+					$.each(condition.value, function(i, value) {
+						$.each(condition.cacheSelectData, function(j, obj) {
+							if (value == obj.value) {
+								textValue = textValue + obj.text + ",";
+							}
+						});
+					});
+					textValue = textValue.substr(0, textValue.length - 1);
+				} else {
+					$.each(condition.cacheSelectData, function(j, obj) {
+						if (condition.value == obj.value) {
+							textValue = obj.text;
+						}
+					});
 				}
-			});
+				break;
+			case "datePicker" :
+				break;
 		}
+			
 		return textValue;
 	}
 	
@@ -290,23 +356,36 @@ function SearchCondition(containerId, options){
 	 * 点击标签清除按钮的动作
 	 */
 	this._labelClearAction = function(element, event) {
+		var type = this.options.conditions[$('#commonSearchInput').attr('hIndex')].type;
 		// 如果要清除的条件正好是通用搜索框的条件的话，通过改变搜索框的值来触发清除事件
 		if ($(element).parent().attr('hIndex') == $('#commonSearchInput').attr('hIndex')) {
-			if (!$('#commonSearchInput').hasClass('selectpicker')) {
-				$('#commonSearchInput').val("");
-				$('#commonSearchInput').trigger("keyup");
-			} else {
-				$('#commonSearchInput').selectpicker('val', '');
-				$('#commonSearchInput').trigger("change");
+			switch (type) {
+				case "text" :
+					$('#commonSearchInput').val("");
+					$('#commonSearchInput').trigger("keyup");
+					break;
+				case "select" :
+				case "mulSelect" :
+					$('#commonSearchInput').selectpicker('val', '');
+					$('#commonSearchInput').trigger("change");
+					break;
+				case "datePicker" :
+					break;
 			}
-
 		} else {
 			self.options.conditions[$(element).parent().attr('hIndex')].value = "";
 			$(element).parent().remove();
-			if (!$('#commonSearchInput').hasClass('selectpicker')) {
-				$('#commonSearchInput').trigger("keyup");
-			} else {
-				$('#commonSearchInput').trigger("change");
+			
+			switch (type) {
+				case "text" :
+					$('#commonSearchInput').trigger("keyup");
+					break;
+				case "select" :
+				case "mulSelect" :
+					$('#commonSearchInput').trigger("change");
+					break;
+				case "datePicker" :
+					break;
 			}
 		}
 		event.stopPropagation(); 
@@ -373,8 +452,6 @@ function SearchCondition(containerId, options){
 		btnGroup.append(conditionSelBtn);
 		btnGroup.append(conditionList);
 		
-		// 通用搜索框(TODO:需要考虑select,mulselect,datepicker的情况)
-		var searchText = $('<input id="commonSearchInput" hIndex="0" type="text" class="form-control" aria-label="..."></input>');
 		// 搜索，重置按钮
 		var btns = '<div class="input-group-btn">';
 		btns = btns + '<button class="btn btn-default" type="button">Go!</button>';
@@ -383,7 +460,7 @@ function SearchCondition(containerId, options){
 		btns = $(btns);
 		
 		inputGroupBtn.append(btnGroup);
-		inputGroupBtn.append(searchText);
+//		inputGroupBtn.append(searchText);
 		inputGroupBtn.append(btns);
 		
 		col12.append(inputGroupBtn);
@@ -418,100 +495,4 @@ function SearchCondition(containerId, options){
 		container.append(form);
 		return container;
 	}
-	/*
-	// 创造各个组件
-	this._createComponents = function() {
-		this.formElement = $('<form id="' + this.options.formId + '" name="' + this.options.formName + '"></form>');
-		this._searchBtn = $('<input class="btn btn-default" id="searchBtn" type="button" value="查询"></input>');
-		this._resetBtn = $('<input class="btn btn-default" id="resetBtn" type="reset" value="重置"></input>');
-		
-		$.each(options.conditions, function(i, condition) {
-			var need;
-			if (condition.need) {
-				need = '<span class="glyphicon glyphicon-star" style="color:red;" aria-hidden="true"></span>';
-			} else {
-				need = ""
-			}
-			var label = $(need + '<label class="control-label" for="' + condition.id + '">' + condition.labelText + '</label>');
-			self._labels.push(label);
-			
-			var component = self._createComponent(condition);
-			self._components.push(component);
-		});
-	};
-	// 布局各个组件
-	this._layoutComponents = function() {
-		$('#' + this.containerId).append(this.formElement);
-		this.formElement.addClass("form-horizontal");
-		if (this.options.rowNum == 1 || (this.options.rowNum == 0 && this._components.length <= 4)) {
-			this._layoutInline();
-		} else {
-			this._layoutHorizontal();
-		}
-	};
-
-	this._layoutInline = function() {
-		var formGroup = $('<div class="form-group"></div>');
-		var cols = 0;
-		$.each(this._components, function(i, component) {
-			cols = i * 3;
-			var div = $('<div class="col-lg-3 col-sm-3 col-md-3"></div>');
-			div.append(self._labels[i]);
-			var inlinediv = $('<div style="display:inline-block;margin-left:8px;"></div>');
-			inlinediv.append(component);
-			div.append(inlinediv);
-			formGroup.append(div);
-		});
-		
-//		var btnDivCols = 12 - cols;
-//		var div = null;
-//		if (btnDivCols > 0) {
-//			div = $('<div class="col-lg-' + btnDivCols + ' col-sm-' + btnDivCols + ' col-md-' + btnDivCols + '"></div>');
-//		} else {
-//			
-//		}
-		
-		 
-//		this._searchBtn.css("margin-left", "20px");
-		formGroup.append(this._searchBtn);
-		this._resetBtn.css("margin-left", "7px");
-		formGroup.append(this._resetBtn);
-//		formGroup.append(div);
-		this.formElement.append(formGroup);
-	}
-	
-	this._layoutHorizontal = function() {
-
-	}
-	
-	// 为需要注册事件的组件添加相应的事件处理
-	this._registHandler = function() {
-		
-	};
-	
-	// 创建具体的控件
-	this._createComponent = function(option) {
-		if (!option) {
-			console.log("要创建的组件选贤为空");
-			return "";
-		}
-		var component = null;
-		if (option.type == "text") {
-			component = $('<input class="form-control" type="text" id="' + option.id + '" name="' + option.name + '" placeholder="' + option.placeHolder + '"></input>');
-		}
-		
-		if (option.type == "checkbox") {
-			
-		}
-		
-		if (option.type == "radio") {
-			
-		}
-		
-		if (option.type == "select") {
-			
-		}
-		return component;
-	}
-	*/
 }
