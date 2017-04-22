@@ -38,6 +38,17 @@ $( document ).ready(function(){
 				type : "select",
 				dataType : "array",
 				arrayData : [{value:"1", text:"大一"},{value:"2", text:"大二"},{value:"3", text:"大三"},{value:"4", text:"大四"}]
+			},
+			{
+				labelText : "大学生入学时间",
+				id	 : "enterdate",
+				name : "enterdate",
+				valueStart : "2017-09-01 00:00:00",
+				valueEnd : "2017-09-01 00:00:00",
+//				format : "YYYY-MM-DD hh:mm:ss",
+				placeHolderStart : "请输入入学开始时间",
+				placeHolderEnd : "请输入入学结束时间",
+				type : "datePicker"
 			}
 			
 		]

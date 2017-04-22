@@ -150,22 +150,25 @@ function SearchCondition(containerId, options){
 					component = $.extend(true, {}, condition.dom);
 					component.val(condition.value);
 					component.attr('hIndex', index);
-					component.attr('placeholder', condition.placeHolder);
 				} else {
-					component = $('<input hIndex="' + index + '" id="commonSearchInput" type="text" class="form-control" aria-label="..." placeholder="' + condition.placeHolder + '" value="' + condition.value+ '"></input>');
-					component.bind({
-			            paste : function() {
-			                self._relationUpdate();
-			            },
-			            cut : function() {
-			                self._relationUpdate();
-			            },
-			            keyup : function() {
-			            		self._relationUpdate();
-			            }
-					});
+					var value = condition.value;
+					if (!value) {
+						value = "";
+					}
+					component = $('<input hIndex="' + index + '" id="commonSearchInput" type="text" class="form-control" aria-label="..." placeholder="' + condition.placeHolder + '" value="' + value + '"></input>');
+					condition.dom = component;
 				}
-//				$('#searchBtnGroup').after($(searchText));
+				component.bind({
+		            paste : function() {
+		                self._relationUpdate();
+		            },
+		            cut : function() {
+		                self._relationUpdate();
+		            },
+		            keyup : function() {
+		            		self._relationUpdate();
+		            }
+				});
 				break;
 			case "select":
 			case "mulSelect":
@@ -177,12 +180,6 @@ function SearchCondition(containerId, options){
 				if (condition.dom) {
 					component = $.extend(true, {}, condition.dom);
 					component.attr('hIndex', index);
-					component.attr('title', condition.placeHolder);
-					component.bind({
-			            change : function() {
-			            		self._relationUpdate();
-			            }
-					});
 				} else {
 					var optData = [];
 					var mulSelect = $('<select hIndex="' + index + '" id="commonSearchInput" class="selectpicker input-group-btn form-control" ' + multi + ' data-live-search="true" title="' + condition.placeHolder + '"></select>');
@@ -210,21 +207,64 @@ function SearchCondition(containerId, options){
 						mulSelect.append($('<option value="' + tempOpt.value + '">' + tempOpt.text + '</option>'));
 					});
 					
-					mulSelect.bind({
-			            change : function() {
-			            		self._relationUpdate();
-			            }
-					});
-					
 					if (condition.dataType == "array" 
 							|| (condition.dataType == "ajax" && condition.isCache)) {
 						condition.dom = mulSelect;
 					}
 					component = mulSelect;
 				}
-				
+				component.bind({
+		            change : function() {
+		            		self._relationUpdate();
+		            }
+				});
 				break;
 			case "datePicker":
+				// 是否有缓存过的dom
+				if (condition.dom) {
+					component = $.extend(true, {}, condition.dom);
+					$(component[1]).val(condition.valueStart);
+					$(component[3]).val(condition.valueEnd);
+					$(component[0]).attr('hIndex', index);
+				} else {
+					var tempdiv = $('<div></div>');
+					var datePickerDiv = $('<div hIndex="' + index + '" style="display:none"></div>');
+					var startDateTime = $('<input type="text" class="form-control" id="datePickerStart" placeholder="' + condition.placeHolderStart + '" readonly/></input>');
+					var spanMarker = $('<span class="input-group-addon">-</span>');
+					var endDateTime = $('<input type="text" class="form-control" id="datePickerEnd" placeholder="' + condition.placeHolderEnd + '" readonly/></input>');
+					tempdiv.append(datePickerDiv, startDateTime, spanMarker, endDateTime);
+					condition.dom = tempdiv.children();
+//					datePickerDiv.append(spanMarker);
+//					datePickerDiv.append(endDateTime);
+//					condition.dom = datePickerDiv;
+					component = condition.dom;
+				}
+				$(component[0]).attr("id", "commonSearchInput");
+				$(component[1]).bind({
+			            change : function() {
+			                self._relationUpdate("start");
+			            },
+			            click : function() {
+			            		if (condition.format) {
+			            			laydate({istime: true, format: condition.format});
+			            		} else {
+			            			laydate({});
+			            		}
+			            }
+					});
+				$(component[3]).bind({
+			            change : function() {
+			                self._relationUpdate("end");
+			            },
+			            click : function() {
+			            		if (condition.format) {
+			            			laydate({istime: true, format: condition.format});
+			            		} else {
+			            			laydate({});
+			            		}
+			            }
+					});
+				
 				break;
 		}
 		return component;
@@ -250,6 +290,9 @@ function SearchCondition(containerId, options){
 				$('#commonSearchInput').remove();
 				break;
 			case "datePicker":
+				$('#commonSearchInput').next().remove();
+				$('#commonSearchInput').next().remove();
+				$('#commonSearchInput').next().remove();
 				$('#commonSearchInput').remove();
 				break;
 		}
@@ -397,20 +440,31 @@ function SearchCondition(containerId, options){
 	this._handleDefaultConditionValue = function() {
 		var firstIndex;
 		$.each(self.options.conditions, function(i, obj) {
-			if (obj.value && (obj.value != "")) {
+			if (obj.value && (obj.value != "") ||
+					 (obj.valueStart || obj.valueEnd)) {
 				if (!firstIndex) {
 					firstIndex = i;
 				}
 				
 				$('#conditionLists').children(':eq(' + i + ')').trigger("click");
-				if (!$('#commonSearchInput').hasClass('selectpicker')) {
-					$('#commonSearchInput').val(obj.value);
-					$('#commonSearchInput').trigger("keyup");
-				} else {
-					$('#commonSearchInput').selectpicker('val', obj.value);
-					$('#commonSearchInput').trigger("change");
+				var type = self.options.conditions[$('#commonSearchInput').attr('hIndex')].type;
+				switch (type) {
+					case "text" :
+						$('#commonSearchInput').val(obj.value);
+						$('#commonSearchInput').trigger("keyup");
+						break;
+					case "select" :
+					case "mulSelect" :
+						$('#commonSearchInput').selectpicker('val', obj.value);
+						$('#commonSearchInput').trigger("change");
+						break;
+					case "datePicker" :
+						$('#commonSearchInput').next().val(obj.valueStart);
+						$('#commonSearchInput').next().trigger("change");
+						$('#commonSearchInput').next().next().next().val(obj.valueEnd);
+						$('#commonSearchInput').next().next().next().trigger("change");
+						break;
 				}
-
 			}
 		});
 		// 触发切换数据事件
